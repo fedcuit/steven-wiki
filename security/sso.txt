@@ -1,0 +1,85 @@
+==========================================
+SSO原理
+==========================================
+
+CAS原理浅谈
+===========================
+
+本笔记参考自 `SSO原理浅谈
+<http://www.blogjava.net/security/archive/2006/10/02/sso_in_action.html>`_
+
+简单的SSO体系结构:
+---------------------
+
++ User(多个)
++ Web应用(多个)
++ SSO认证中心(1个)
+
+CAS的基本原理
+==========================
+
+    CAS(Central Authentication Service)是Yale大学发起的一个开源项目
+    **CAS是SSO的一种实现**.
+
+CAS的结构体系
+---------------------
+
++ CAS Server 
+    CAS Server负责完成对用户的认证工作, 需要独立部署
++ CAS Client
+    CAS Client部署在客户端，原则上，CAS Client的部署意味着，当有对本地Web应用的受保护访问请求，并且需要对请求方进行身份认证，Web应用不再接受任何的用户名密码等 Credential, 而是重定向到CAS Server进行认证.
+
+原始SSO实现
+--------------------
+
+Web时代还处于初级阶段时，SSO是通过共享cookie来实现， 由于cookie无法跨域，所以如果几个Web应用想做到SSO，要求他们的域名在同一个域，这样各个站点才能共享基于这一域名的cookie,这种方法不灵活而且有不少安全隐患, 已经被抛弃了.
+
+
+CAS基础协议
+--------------------
+
+.. image:: ../image/security/cas_protocol-1.jpg
+
+-
+
+    上图是一个最基础的CAS协议，CAS Client以Filter方式保护Web应用的受保护资源，过滤从客户端过来的每一个Web请求，同时，CAS Client会分析HTTP请求中是否包请求Service Ticket(上图中的Ticket)，如果没有，则说明该用户是没有经过认证的，于是，CAS Client会重定向用户请求到CAS Server(Step 2). Step 3 是用户认证过程，如果用户提供了正确的 Credentials, CAS Server会产生一个随机的Service Ticket, 然后, 缓存该Ticket，并且重定向用户到CAS Client(附带刚才产生的Service Ticket), Service Ticket是不可以伪造的，最后，Step 5 和 Step6 是 CAS Client 和 CAS Server 之间完成了一个对用户的身份核实，用 Ticket 查到 Username ，因为 Ticket 是 CAS Server 产生的，因此，所以 CAS Server 的判断是毋庸置疑的.
+
+    该协议完成了一个很简单的任务，就是 User(david.turing) 打开 IE ，直接访问 helloservice 应用，它被立即重定向到 CAS Server 进行认证， User 可能感觉到浏览器在 helloservcie 和 casserver 之间重定向，但 User 是看不到， CAS Client 和 CAS Server 相互间的 Service Ticket 核实(Validation)过程. 当CAS Server 告知 CAS Client 用户 Service Ticket 对应确凿身份， CAS Client 才会对当前 Request 的用户进行服务.
+
+.. note:: 经过Step3之后， CAS Server将用户重定向到CAS Client, 可以将刚才产生的Service Ticket附加在URL中的，这样整个过程就可以不使用Cookie了.
+          当然了，这个地方使用cookie也是没有问题的，CAS不存在cookie跨域的问题，因为单点控制在CAS Server, CAS Server就只有一个.
+
+
+CAS代理模式 
+--------------------
+CAS基础协议已经能够满足大多数的SSO应用，考虑一种更复杂的情况：用户访问hellservice, helloservice又依赖于 helloservice2来获取一些信息，这种情况下，假设helloservice也是需要对User进行身份验证的.
+
+针对这种情况, CAS引入了一种Proxy认证机制， 即CAS Client可以代理用户去访问其他的Web应用.
+
+
+.. image:: ../image/security/cas_protocol-2.jpg
+
+CAS安全性
+=====================================
+
+CAS的安全性依赖SSL.
+
+TGC/PGT安全性
+------------------
+
+对于一个CAS用户来说，最重要的就是保护它的TGC(Ticket Granting Cookie), 如果TGC不慎被CAS Server以外的实体获得， Hacker能够找到该TGC, 然后冒充CAS用户访问**所有资源**.
+
+**合理设置TGC超时时间**, 默认是2个小时
+.. note:: 由于有SSL保护，所以TGC(或者ST service ticket, PT proxy ticket)面临的风险主要并非传输窃取, 而是当用户离开电脑后其他人可以直接访问你已经授权的应用，所以设置一个TGC的有效期，可以减少被别人盗用你系统目录下的TGC cookie的风险.
+
+
+ST/PT安全性
+---------------------
+CAS通过以下几个方面让Service Ticket更加安全.
+
+#. ST只能使用一次.
+    CAS协议规定，无论Service Ticket验证是否成功, CAS Server都会将在服务端的缓存中的此ST清除.
+#. ST在一段时间内失效.
+    CAS规定Service Ticket只能存活一定的时间，然后CAS Server会让它失效.
+#. ST是基于随机数生成的.
+    Service Ticket必须足够随机化，尽可能做到其生成规则无法被猜出.

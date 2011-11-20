@@ -1,0 +1,11 @@
+HTML篇
+===================================
+
++ 为页面设置favicon
+    .. code-block :: html
+
+       <link rel="icon" href="http://YourAddress/favicon.ico" type="image/x-icon" />
+       <link rel="shortcut icon" href="http://YourAddress/favicon.ico" type="image/x-icon" /> 
+
+    .. note:: 
+    默认情况从浏览器会从服务器的根目录下读取favicon.ico文件，通过在每个html文件的头部添加上面的代码，可以让不同的页面使用不同的favicon

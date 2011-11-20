@@ -1,0 +1,31 @@
+Spring学习笔记 
+=========================================
+
+Spring事务管理
+----------------------
+
+Spring Web
+----------------------
+
+Spring管理Filter
+________________
+
+使用Spring的 DelegatingFilterProxy在web.xml中指定由spring application context中定义的bean来负责web filtering.
+配置:
+
+.. code-block :: xml
+
+    <filter>
+        <filter-name>springFilter</filter-name>
+        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>springFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+说明: spring会根据filter-name 在spring application context中查找相同名称的 bean.
+
+Spring管理Servlet
+_________________
+

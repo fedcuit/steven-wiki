@@ -1,0 +1,28 @@
+SQLServer常用语句
+==============================
+
++ 检测某个列是否已经存在(在向表中添加一列之前执行):
+
+    .. code-block :: sql
+        
+        IF NOT EXISTS ( SELECT  *
+                    FROM    sys.columns
+                    WHERE   object_id = OBJECT_ID('table_name')
+                            AND name = 'column_name' )
+
++ 向表中添加一列并连接到另一张表的外键连接:
+    
+    .. code-block :: sql
+
+        ALTER TABLE [dbo].[TableA] ADD [ColumnName] [DataType] NULL 
+        GO
+        ALTER TABLE [dbo].[TableA]  WITH CHECK ADD  CONSTRAINT [fk_TableA_ColumnName] FOREIGN KEY([ColumnName])
+        REFERENCES [dbo].[TableB] ([id])
+        GO
+        ALTER TABLE [dbo].[TableA] CHECK CONSTRAINT [fk_TableA_ColumnName]
+
+
+
+
+        
+

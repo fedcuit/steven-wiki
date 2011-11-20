@@ -1,0 +1,95 @@
+=========================================
+比较实用的一些shell命令
+=========================================
+
+* 可以通过这种方式来在vi的文件管理器中打开某个文件而不用输入文件名
+
+.. code-block :: bash
+
+    vi .
+
+* 创建文件
+
+.. code-block :: bash
+
+    touch filename 
+
+* 使用vim打开当前目录中的第一个文件, 如果想打开第三个文件，则修改命令为 vi `ls|sed -n 3p` 
+
+.. code-block :: bash
+
+    vi `ls|sed -n 1p`
+
+
+* 跳回之前的目录 
+
+.. code-block :: bash
+
+    cd -
+
+* find命令 
+
+.. code-block :: bash
+
+    find ~  -iname "*fundraiserwebui1.log*" -exec vi + {} \;
+    #忽略大小写在指定位置查找文件并对結果进行处理 
+    find . -name 'service.properties' | xargs grep jmxPort
+    #找到当前目录下所有service.properties文件中包括jmxPort的行
+
+* 查看結果按文件名排序
+
+.. code-block :: bash
+
+    ls -lv
+
+* 添加一个用户到组
+
+.. code-block :: bash
+
+  usermod -G group user
+
+* 创建目录,如果需要为其创建父目录
+
+.. code-block :: bash
+    
+  mkdir -p /parentdir/dir
+
+* 复制多个文件到指定目录 cp sourcelist -t targetdir
+
+.. code-block :: bash
+
+  cp -r bin/ conf/ logs/ temp/ webapps/ work/ -t ../tomcatInstance2
+
+* source, export
+
+  + source filename.sh 在当前shell环境下执行这个shell script
+  + filename.sh 从当前shell fork出一个子shell并在其中执行这个shell script
+  + export variableName=value 当前shell及其所有子shell都可以访问这个变量, 否则的话这个变量只在当前shell可见
+  + 子进程可以访问父进程中export出来的变量,但是父进程无法访问子进程中定义的变量
+
+* 查看本地DNS
+
+.. code-block :: bash
+
+    cat /etc/resolv.conf
+
+* 测试某个socket connection是否已经打开 
+    
+.. code-block :: bash
+
+    telnet host port
+    telnet localhost 3306 //查看本地的mysql连接是否打开
+
+* 修改hosts之后刷新DNS
+    
+.. code-block :: bash
+    
+    ipconfig /flushdns //windows
+    sudo /etc/init.d/networking restart //linux
+
+* 将8080端口映射到80端口
+
+.. code-block :: bash
+
+    iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080
+

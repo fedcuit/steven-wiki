@@ -1,0 +1,52 @@
+JSF杂记
+=======================
+
+JSF生命周期
+-------------------------
+#. default constructor invoked
+#. dependency injection
+#. *post construct method invoked*
+#. restore bean saved with <a4j:keepAlive>
+#. **Restore View** (meanwhile restore bean/value saved with <t:saveState>
+#. **Apply Request Values**
+#. **Process Validations**
+#. **Update Model Values**
+#. **Invoke Application**
+#. **Render Response**
+
+
+所以，在@postContruct 方法中是拿不到由 <a4j:keepAlive>跟<t:saveState>保存下来的值的
+
+
+JSF杂记
+-------------------------
+
+#. 通过一个请求执行两个Controller中的方法
+    可以通过在commandButton或是commandLink中添加 *<f:setPropertyActionLisnter value="" target=""/>* 来实现通过一个请求调用两个Controller中的方法
+
+    执行的流程是 : 
+
+    * 先在ControllerA中调用 value 对应的 getter 方法
+    * 然后将拿到的值以参数的形式传入 target 对应的 ControllerB中的方法
+#. 使用A4J组件时一定记得加上 *reRender* 属性
+
+   否则后台的修改无法更新到页面上,另外可以通过limitToList = "true",属性来指定后台bean只处理 reRender 属性指定的页面元素
+
+   被reRender的东西可以是任何的JSF标签
+
+#. action 与 actionListener的区别 
+    action指向一个不接受参数的方法，这个方法可以返回 void 或是 String, 如果返回String则是跳转到一个指定的页面.
+
+    actionListener指向一个接受ActionEvent的参数，这个方法没有返回值.
+    
+    一般来说，如果进行页面跳转的话，使用 action; 如果想接受参数的话，使用 actionListener; 除了前两种情况外，一般都使用无返回值的 action.
+
+#. h:column, rich:column中不能使用c:choose,c:if
+    h:column或是rich:column中不能使用c:choose,c:if等条件语句来控制输出，但是可以使用rendered属性.
+
+
+
+
+
+
+

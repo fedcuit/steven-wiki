@@ -1,0 +1,10 @@
+Java Server Faces
+=============================
+
+Contents:
+
+.. toctree::
+    :maxdepth: 2
+
+    jsf.txt
+    richface.txt

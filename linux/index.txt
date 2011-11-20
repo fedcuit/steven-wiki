@@ -1,0 +1,11 @@
+Linux shell/software
+==============================
+
+Contents:
+
+.. toctree::
+    :maxdepth: 2
+
+    shell.txt
+    ubuntu.txt
+    vim.txt

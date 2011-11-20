@@ -1,0 +1,9 @@
+JavaScript Programming
+=============================
+
+Contents:
+
+.. toctree::
+    :maxdepth: 2
+
+    js-good-parts.txt

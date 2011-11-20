@@ -1,0 +1,227 @@
+Javascript good parts 读书笔记
+----------------------------------
+
+
+第三章 对象
+===================
+
+#. 引用传递
+    javascript对象是通过引用来传递的，它们永远不会被拷贝.
+
+#. 属性委托
+    尝试获取javascript对象的某个属性值，且该对象没有此属性名，那么javascript会试着从原型对象中获取属性值。如果那个原型
+    对象也没有该属性，那么再从他的原型中寻找，依次类推，直到该过程最后到达终点 *Object.prototype* . 如果想要的属性完全不存在于原型链中,
+    那么結果就是 undefined 值。这个过程称为委托.
+
+#. 反射
+    + typeof
+        确定属性的类型
+
+        .. code-block :: javascript
+
+            typeof flight.number //'number'
+            typeof flight.status //'string'
+            typeof flight.arrival //'object'
+            typeof flight.manifest //'undefined'
+
+    + hasOwnProperty('attribute')
+        如果对象拥有独有的属性， hasOwnProperty('attribute')返回 true, 此方法不会检查原型链
+
+#. 枚举 
+    + POJO(暂且借用一下这个名词)
+        直接使用 for in 
+    + 非POJO 
+        使用 typeof 和 hasOwnProperty() 来过滤掉不想要的属性
+
+#. 删除属性
+    删除对象中的属性不会影响到原型对象中的属性, 但是会使原型对象中的属性暴露出来(因为属性委托机制)
+
+    .. code-block :: javascript
+
+        obj.nickname //'nick name in object'
+        delete obj.nickname
+        obj.nickname //'nick name defined in prototype'
+    
+#. 减少全局变量污染
+    有两种方法减少全局变量污染:
+
+    + 将全局变量放在一个对象内部，说白了就是要使用命名空间 
+
+    + 使用闭包
+
+第四章 函数
+===========================
+
+#. 函数对象
+    在javascript中，函数就是对象.
+    对象是"名/值"对的集合并拥有一个连接到原型对象的隐藏连接.
+    
+    对象字面量产生的对象连接到 *Object.prototype* .
+    函数对象连接到 *Function.prototype* (该原型对象本身连接到Object.prototype)
+
+    !!
+    每个函数在创建时附有两个隐藏属性: 函数上下文 和 实现函数行为的代码.
+
+    函数与众不同的之处最它们可以被调用 
+
+#. 函数字面量
+    函数字面量的创建:
+    
+    + 保留字 function
+
+    + 函数名 (可以省略)
+
+    + 函数参数   
+
+    + 函数体
+
+    通过函数字面量创建的函数包含有一个连接到外部上下文的连接,这被称为闭包 
+
+    **闭包是javascript强大表现力的根基**
+
+#. 调用 
+    函数被调用时会接收两个参数: this 和 arguments, 其中 this 的值取决于调用的模式.
+
+    (传入参数包含this与python的对象方法非常的类似,只不过javascript不需要形参来显式接收this, 而python强制要求第一个形参接收传入的this引用(按惯例,这个引用一般叫self)
+
+    javascript的this引用是javascript之所以如此灵活的根基(我是这样想的), 利用this可以实现方法的高度复用.
+
+    四种方法调用模式:
+
+    * 方法调用模式
+
+      当一个函数被保存为对象的一个属性时,我们称它为一个方法(看来方法与函数还是有区别的).
+      当方法被调用时, this 被绑定到该对象. this到对象的绑定发生在调用的时候,这个超级迟绑定(very late binding)使得函数可以对this高度利用. 通过 this可取得它们所属对象的上下文的方法被称为公共方法.
+
+    * 函数调用模式
+
+      当一个函数并非一个对象的属性时,那么它被当作一个函数来调用.
+      当函数以此模式被调用时, this被绑定到全局对象-- 这是语言设计的一个错误.这个错误设计的后果就是方法不能利用内部函数来帮助它工作, 因为内部函数的this被绑定了错误的值, 所以不能共享该方法对对象的访问权.
+
+      可以通过 that = this 来解决 (命令为that是约定)
+
+    * 构造器调用模式
+
+      (曾经是我最常用的一种方式, 现在看来我错了很久...)
+      一种模糊了javascript原型本质的,类似基于类的语言的对象构建语法, 一种两边不讨好的语法.
+      (a. 模糊了原型本质 b. 不伦不类的基于类的对象构造语法)
+
+      按照约定, 构造器首字母要大写.
+
+      new 前缀创建出一个空白对象, 把这个空白对象作为构造器函数的this引用传入, 在构造器函数内对这个对象进行一些操作.
+
+      .. code-block :: javascript
+
+        function Person(){
+            var name = 'steven';
+            var age = '24';
+        
+            this.getPersonInfo = function(){
+                return name + '-' + age;
+            };
+        
+            this.sayHi = function(){
+                print('hello, ' + this.getPersonInfo());
+            }
+        }
+        
+        var person = new Person();
+        
+        print(person.getPersonInfo());
+
+     这种形式没有使用原型继承, 全部都是方法的复制, 每个新创建的对象都从构造器函数中一份完全相同的属性值, 增大了系统开销.
+
+     **不推荐这种调用模式**
+
+    * apply 模式
+
+      javascript函数隐式传入this引用正是为apply调用模式服务的.
+      调用形式:
+      functionName.apply(objectReference, arguemnts)
+      以objectReference为引用, arguments为函数去执行functionName函数.
+
+      call与apply功能相同,不同之处是apply以数组形式给函数传入参数,而call将多个参数一一例举出来传递.
+
+      .. code-block :: javascript
+
+        var sum = add.apply(null,[2, 3]);
+        var sum2 = add.call(null,2,3);
+
+
+#. 参数     
+    函数中的arguments可以获取传给函数的所有参数, 但是arguments的实现是又一个javascript语言实现的错误, arguments只是一个类数组(array-like), 拥有length属性, 但是缺少所有的数组方法
+
+#. 返回 
+    javascript函数总会返回一个值,如果没有明确使用return语句,则返回undefined.
+
+#. 异常
+    javascript可以使用throw语句抛出一个异常(是一个对象直接量), 异常对象会传递给 catch 子句.
+
+#. 给类型添加方法(修改类型对象的原型)
+    
+    .. code-block :: javascript
+
+        Number.prototype.add = function(){
+            return this + arguments[0];
+        }
+        
+        print((2).add(5)); // 7
+
+#. 作用域
+    function级别的作用域.
+    在一个function内部定义的变量在function内部的任何地方都可见.
+
+#. 闭包
+    闭包: 一个函数字面量持有外部的上下文环境.
+    上下文环境指的是, 外部函数中定义的变量和外部函数接收的参数.
+
+    闭包的常见写法:
+
+    + 返回一个对象直接量
+
+    + 返回一个匿名函数
+
+#. 模块模式
+    一般形式:
+
+    #. 一个定义了私有变量和私有函数的函数
+
+    #. 利用闭包创建可以访问私有变量和私有函数的特权函数(或对象)
+
+    #. 最后返回这个特权函数(或对象)
+
+#. 级联
+    (jQuery链式写法全是级联), 级联操作的每个方法返回 this 而不是 undefined
+
+#. 套用
+    函数也是值，从而我们可以用有趣的方式来操作函数值.
+    套用允许我们将函数与传递给它的参数相结合去产生一个新的函数.
+
+    .. code-block :: javascript
+
+        Object.prototype.method = function (name, func) {
+            this.prototype[name] = func;
+            return this;
+        }
+        
+        
+        Function.method('curry', function(){
+                    // args represents arguemnts pass to curry function
+                    // that represents the original function object
+                    var slice = Array.prototype.slice;
+                    var args = slice.apply(arguments), that = this;
+                    //using closure to keep above value
+                    return function() {
+                        var param = slice.apply(arguments).concat(args);
+                        that.apply(null, param );
+                    }
+                });
+        
+        function add() {
+            print(arguments[0] + arguments[1]);
+            return arguments[0] + arguments[1]; 
+        }
+        
+        var addWith1 = add.curry(1);
+        addWith1(6); // 7
+

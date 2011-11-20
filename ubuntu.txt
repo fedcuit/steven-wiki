@@ -1,0 +1,85 @@
+====================================
+Ubuntu下常用软件的安装与配置
+====================================
+
+Java的安装
+---------------------------------------
+    #. 安装 *openjdk*
+
+       .. code-block:: bash
+            
+           sudo apt-get install openjdk-6-jdk 
+    #. 添加Java到系统路径
+
+       编辑 */etc/profile*, 添加
+
+       .. code-block:: bash
+        
+           export JAVA_HOME=/usr/lib/jvm/java-1.6.0-openjdk
+           export PATH=$JAVA_HOME/bin:$PATH
+
+       默认情况下openjdk会被安装到 */usr/lib/jvm/java-1.6.0-openjdk*
+    #. 使路径生效
+
+       .. code-block:: bash
+           source /etc/profile
+
+VPN的配置
+-----------------------------------
+    #. 安装 *vpnc*
+
+       .. code-block:: bash
+
+           sudo apt-get install vpnc
+    #. 修改配置文件 
+
+       在/etc/vpnc/下创建文件default.conf(执行vpnc命令后，会自动在/etc/vpnc/目录下查找default.conf文件),添加如下内容
+
+       .. code-block:: guess
+
+           IPSec gateway xxx.xxx.xxx.xxx 
+           IPSec ID XXXX 
+           IPSec secret XXXXXXXX
+           IKE Authmode psk 
+           Xauth username xxxxxx
+           Xauth password xxxxxx 
+
+    #. 连接VPN
+
+       .. code-block:: bash
+
+           sudo vpnc
+
+SSH的配置
+--------------------------------------------
+    * SSH的安装
+      有时通过 *sudo apt-get install openssh-server* 安装ssh会提示依赖找不到, 可以通过执行
+
+      .. code-block:: guess
+
+        sudo aptitude install openssh-server
+
+     来安装
+
+    * 跳过ssh连接验证
+    
+      .. code-block:: bash
+
+          vi /etc/ssh/ssh_config
+
+      修改GSSAPIAuthentication 为 no
+
+共享NTFS分区的文件
+----------------------------------------------
+    #. 安装 *samba*
+
+       .. code-block:: bash
+            
+           sudo apt-get install samba
+    #. 修改配置
+
+       .. code-block:: bash
+            
+           vi /etc/samba/smb.conf
+
+       在global区域添加 *usershare owner only=false*

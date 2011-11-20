@@ -1,0 +1,53 @@
+常用SQL語句集合
+===================================
+
+
+查询語句
+-------------------------------------
++ Select a random row from a database table
+    `http://www.petefreitag.com/item/466.cfm <http://www.petefreitag.com/item/466.cfm>`__
+
+
+
+元数据表操作
+----------------------------------------
+
+.. note:: 
+    SQLServer在字串前面加上N表示使用Unicode编码
+
++ 判断表是否存在(表名 accounts)
+    
+    .. code-block :: sql
+        
+        SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[accounts]') AND OBJECTPROPERTY(id, N'IsUserTable') = 1
+
++ 判断列是否存在(表名 table_name, 列名 column_name)
+
+    .. code-block :: sql
+
+        SELECT  *
+             FROM    sys.columns
+             WHERE   object_id = OBJECT_ID('table_name')
+                     AND name = 'column_name'
+                    
++ 判断外键約束是否存在( 約束名 constraint_name )
+
+    .. code-block :: sql
+
+        SELECT * 
+			FROM dbo.sysobjects 
+		    WHERE id = OBJECT_ID(N'constraint_name') 
+			      AND OBJECTPROPERTY(id, N'IsForeignKey') = 1 
+
++ 判断视图是否存在(视图名 view_name)
+
+    .. code-block :: sql
+
+        SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = N'view_name' 
+
++ 判断存储过程是否存在
+
+    .. code-block :: sql
+
+        SELECT * FROM sysobjects WHERE name = 'usp' and type='P'
+    

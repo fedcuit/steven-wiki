@@ -1,0 +1,238 @@
+===================================
+使用CAS在Tomcat中实现单点登录
+===================================
+
+本文参考了 `使用CAS在Tomcat中实现单点登录
+<http://www.ibm.com/developerworks/cn/opensource/os-cn-cas/>`_
+和 `CAS实现单点登录(SSO)经典完整教程
+<http://blog.csdn.net/small_love/article/details/6664831>`_
+
+配套CAS Server
+=========================
+本教程使用的是 cas-server-3.4.10-release.zip.
+
+#. 将 cas-server-3.4.10-release.zip 解压
+
+#. 将解压后的文件夹中的 /module中的 cas-server-webapp-3.4.10.war 复制到 %TOMCAT_HOME%/webapps
+
+#. 将拷贝后的war文件重命名成 cas.war (会在webapps文件夹下自动解压出 cas 文件夹, 下文中将用%CAS_SERVER_HOME%来表示这个文件夹)
+
+#. 修改cas server 的配置文件 (修改cas server的配置文件是重点，将在下一节单独讲解)
+
+修改 deployConfigContext.xml
+-----------------------------
+cas server的核心配置文件是 %CAS_SERVER_HOME%/WEB-INF/deployerConfigContext.xml, cas server构建在spring基础上.
+
+配置DataSource
+~~~~~~~~~~~~~~~
+在 deployerConfigContext.xml文件中添加一个bean, 配置对应对用户数据库的数据库连接.
+下面以mysql为例.
+
+.. code-block :: xml
+
+    
+  <bean id="casDataSource" class="org.apache.commons.dbcp.BasicDataSource">
+    <property name="driverClassName">
+      <value>com.mysql.jdbc.Driver</value>
+    </property>
+    <property name="url">
+      <value>jdbc:mysql://localhost:3306/test</value>
+    </property>
+    <property name="username">
+      <value>dbusername</value>
+    </property>
+    <property name="password">
+      <value>dbpassword</value>
+    </property>
+  </bean>
+
+配置PasswordEncoder
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PasswordEncoder用来将用户登录时提供的密码进行编码，这样才能跟数据库中已经编码的用户密码进行比较.
+下面是使用MD5加密用户密码为例.
+
+.. code-block :: xml
+
+    
+  <bean id="passwordEncoder" class="org.jasig.cas.authentication.handler.DefaultPasswordEncoder" p:characterEncoding="UTF-8">
+    <constructor-arg index="0" value="MD5"/>
+  </bean>
+
+配置AuthenticationHanlder
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+AuthenticationHandler将利用上面配置的dataSource跟passwordEncoder来验证用户身份是否合法.
+AuthenticationHandler的是 Bean AuthenticationManager的property, 修改后的 xml 如下:
+
+.. code-block :: xml
+    
+    <property name="authenticationHandlers">
+      <list>
+        <!--利用上面配置的dataSource与passwordEncoder来验证用户合法性-->
+        <bean class="org.jasig.cas.adaptors.jdbc.QueryDatabaseAuthenticationHandler">
+          <property ref="casDataSource" name="dataSource"/>
+          <property ref="passwordEncoder" name="passwordEncoder"/>
+          <property name="sql">
+            <value>select password from user where name = ?</value>
+          </property>
+        </bean>
+        <bean class="org.jasig.cas.authentication.handler.support.HttpBasedServiceCredentialsAuthenticationHandler" p:httpClient-ref="httpClient"/>
+        <!--这是一个简单的测试用的AuthenticationHandler, 当用户输入的用户名与密码相同时，则验证通过，实际使用中要注释掉-->
+        <!--<bean class="org.jasig.cas.authentication.handler.support.SimpleTestUsernamePasswordAuthenticationHandler"/>-->
+      </list>
+    </property>
+
+添加依赖包
+---------------------
+需要添加到WEB-INF/lib中的依赖包:
+
++ cas-server-support-jdbc-3.4.10.jar(在解压后的cas-server-release包的modules文件夹下)
++ mysql-connector-java.jar
++ commons-collections.jar
++ commons-dbcp.jar
++ commons-pool.jar
+
+配置Tomcat SSL
+====================================
+CAS的安全性依赖于SSL, 所以运行CAS Server的Web Server Container必须启用SSL(https).
+
+生成SSL证书
+------------------
+#. 删除 %JRE_HOME%/lib/security/cacerts
+
+#. 生成证书
+    
+    .. code-block :: bash
+
+         keytool -genkey -alias tomcat -keyalg RSA -keystore ~/Documents/keys/tomcat
+
+#. 导出证书
+
+    .. code-block :: bash
+
+        keytool -export -file ~/Documents/keys/tomcat.crt -alias tomcat -keystore ~/Documents/keys/tomcat
+
+#. 导入证书
+
+    .. code-block :: bash
+
+        sudo keytool -import -keystore /usr/lib/jvm/jdk1.6.0_22/jre/lib/security/cacerts -file ~/Documents/keys/tomcat.crt -alias tomcat
+
+.. note:: 
+    + keytool是JDK自带的证书生成工具, 位于 %JRE_HOME%/bin下面
+    + alias tomcat 指定这个证书的别名是 tomcat
+    + 上面过程中会多次提示输入 keystore password, 这个密码将在下面的配置中用到
+
+修改server.xml文件
+----------------------------
+Tomcat的SSL默认是关闭的(注释掉的), 删除注释标记并添加证书位置和证书密码，修改后大致如下:
+
+.. code-block :: xml
+
+    
+    <Connector port="8443" protocol="HTTP/1.1" SSLEnabled="true" maxThreads="150" 
+        scheme="https" secure="true" clientAuth="false" sslProtocol="TLS" 
+        keystoreFile="/home/stevenf/Documents/keys/tomcat" //生成的证书位置  
+        keystorePass="tomcat"/> //生成证书时指定的密码
+
+
+配置Web Application
+==========================
+
+Web application想使用CAS进行用户验证，需要将cas-client添加到web application中，本实例使用maven构建，使用的cas-client版本是 cas-client-core 3.2.1.
+(想使用cas-client需要添加相关的依赖包进来，这里不再多讲, 使用maven来管理这些依赖可以节约很多时间)
+
+修改web.xml
+-------------
+
+在web.xml中配置CAS Filter来保护那些需要授权才能进行访问的资源.
+
+一般来说，需要添加如下配置到web.xml:
+
+.. code-block :: xml
+
+    
+  <!--begin of SSO-->
+  <!--for single sign out-->
+  <listener>
+    <listener-class>org.jasig.cas.client.session.SingleSignOutHttpSessionListener</listener-class>
+  </listener>
+  <!-- user authentication filter, essential -->
+  <filter>
+    <filter-name>CASFilter</filter-name>
+    <filter-class>
+            org.jasig.cas.client.authentication.AuthenticationFilter
+        </filter-class>
+    <init-param>
+      <param-name>casServerLoginUrl</param-name>
+      <param-value>https://www.sf.com:8443/cas/login</param-value>
+    </init-param>
+    <init-param>
+      <param-name>serverName</param-name>
+      <param-value>http://www.sf.com:8080</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>CASFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <!-- ticket verification filter, essential -->
+  <filter>
+    <filter-name>CASValidationFilter</filter-name>
+    <filter-class>  
+            org.jasig.cas.client.validation.Cas20ProxyReceivingTicketValidationFilter</filter-class>
+    <init-param>
+      <param-name>casServerUrlPrefix</param-name>
+      <param-value>https://www.sf.com:8443/cas</param-value>
+    </init-param>
+    <init-param>
+      <param-name>serverName</param-name>
+      <param-value>http://www.sf.com:8080</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>CASValidationFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <!--request filter, set sso user info into HttpServletRequest(HttpServletRequest.getRemoteUser())-->
+  <filter>
+    <filter-name>CASRequestFilter</filter-name>
+    <filter-class>  
+            org.jasig.cas.client.util.HttpServletRequestWrapperFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>CASRequestFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <!--AssertionHolder filter, provide a convenient way to get user info-->
+  <filter>
+    <filter-name>CASAssertionThreadLocalFilter</filter-name>
+    <filter-class>org.jasig.cas.client.util.AssertionThreadLocalFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>CASAssertionThreadLocalFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <!--end of sso-->
+
+
+
+在Web application中获取验证成功后的用户信息
+-------------------------------------------
++ request.getRemoteUser() (用户信息被HttpServletRequestWrapperFilter设置到request中)
++ AssertionHolder.getAssertion().getPrincipal().getName() (用户信息被AssertionTheadLocalFilter设置到当前线程上)
+
+给本机配置域名
+==================
+
+#. 修改 hosts 文件，想自己想要的域名指向本地，上面例子使用的域名是 www.sf.com
+
+.. code-block :: bash
+    
+    sudo vi /etc/hots
+    # 添加 127.0.0.1    www.sf.com
+#. 刷新本地DNS
+
+.. code-block :: bash
+
+    sudo /etc/init.d/networking restart
+

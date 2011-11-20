@@ -1,0 +1,18 @@
+==========================================
+浏览器扩展开发 
+==========================================
+
+扩展安装位置
+-----------------------------------------
+#. 扩展被默认安装到的目录是(Win中)
+    + Firefox
+        .. code-block:: guess
+
+            c:\Documents and Setttings\${user name}\Application Data\Mozilla\Firefox\Profiles\xxxx.default\extensions
+
+    + Chrome
+        .. code-block:: guess
+            
+            c:\Documents and Settings\${user name}\Local Settings\Application Data\Google\Chrome\User Data\Default\Extensions
+
+            

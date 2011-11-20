@@ -1,0 +1,9 @@
+Browser Extension Development
+=================================
+
+Contents:
+
+.. toctree ::
+    :maxdepth: 2
+
+    browser.txt
