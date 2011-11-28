@@ -45,3 +45,9 @@ MySQL常见操作
 
         DROP PROCEDURE accounts_add_column;
 
++ Mac 下通过dmg安装完mysql之后设置 root 密码
+    .. code-block :: bash
+
+        mysqladmin -u root password 新密码
+
+    .. note :: 上面除了'新密码'外其他都是关键字
