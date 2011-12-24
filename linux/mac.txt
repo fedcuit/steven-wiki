@@ -1,0 +1,8 @@
+=========================================
+Mac下软件的配置与安装
+=========================================
+
+* Mac下默认的JAVA_HOME地址:
+    .. code-block:: guess
+
+        /System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home

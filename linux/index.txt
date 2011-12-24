@@ -8,4 +8,5 @@ Contents:
 
     shell.txt
     ubuntu.txt
+    mac.txt
     vim.txt

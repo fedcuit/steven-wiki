@@ -22,7 +22,10 @@ Java的安装
     #. 使路径生效
 
        .. code-block:: bash
+
            source /etc/profile
+
+    .. note:: 不建议安装openjdk, 应该安装sun/oracle的jdk, 开发环境应该与生产环境使用相关系列的jdk才是保险的.
 
 VPN的配置
 -----------------------------------
@@ -83,3 +86,5 @@ SSH的配置
            vi /etc/samba/smb.conf
 
        在global区域添加 *usershare owner only=false*
+
+

@@ -4,7 +4,7 @@ MySQL常见操作
 + 创建用户并授权 
     .. code-block :: sql
 
-        GRANT CREATE ROUTINE,ALTER ROUTINE, SELECT,CREATE, INSERT, UPDATE, DELETE, EXECUTE  
+        GRANT CREATE ROUTINE, ALTER ROUTINE, SELECT, CREATE, ALTER, INSERT, UPDATE, DELETE, DROP, EXECUTE  
         ON hdk_service.* 
         TO 'user'@'%' 
         IDENTIFIED BY 'password'
