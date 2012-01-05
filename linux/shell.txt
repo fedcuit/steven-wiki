@@ -92,4 +92,9 @@
 .. code-block :: bash
 
     iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080
+* 切换项目的svn地址
+
+.. code-block :: bash
+    
+    svn switch --relocate https://fndsvn.dev.activenetwork.com/cic/cic/HuoDongKong/code/hdk-webserver/trunk  https://fndsvn-mirror.dev.activenetwork.com/cic/cic/HuoDongKong/code/hdk-webserver/trunk/
 
