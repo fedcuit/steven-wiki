@@ -1,0 +1,7 @@
+MySQL常见错误 
+=============================
+=============================
+
+#. Cannot add or update a child row: a foreign key constraint fails
+    + 在表已经建好的情况下建立外键的时候不要设置为NOT NULL, 否则无法建立外键关联;但是在建表的同时设置NOT NULL的外键是可以的.
+    + 主表与从表的关联字段的数据类型不一致 

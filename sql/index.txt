@@ -9,4 +9,5 @@ Contents:
     sqlserver.txt 
     sqlskill.txt
     mysql.txt
+    mysqlerror.txt
 

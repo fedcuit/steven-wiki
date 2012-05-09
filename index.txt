@@ -15,6 +15,7 @@ Contents:
     security/index.txt
     spring/index.txt
     javascript/index.txt
+    jquery/index.txt
     jsf/index.txt
     linux/index.txt
     sql/index.txt
@@ -22,6 +23,7 @@ Contents:
     css/index.txt
     browser/index.txt
     web/index.txt
+    jetty/index.txt
 
 
 
